@@ -1,0 +1,41 @@
+name: "Weather & Exchange"
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Weather
+        run: |
+          echo -e "\033[97m[CI/CD]: calling weather\033[0m"
+          python .github/scripts/weather.py
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            echo -e "\033[91m\033[1m[CI/CD ERROR]: pipeline failed at weather (exit code $status)\033[0m" >&2
+            exit "$status"
+          fi
+
+      - name: Exchange
+        run: |
+          echo -e "\033[97m[CI/CD]: moving to exchange\033[0m"
+          python .github/scripts/exchange.py
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            echo -e "\033[91m\033[1m[CI/CD ERROR]: pipeline failed at exchange (exit code $status)\033[0m" >&2
+            exit "$status"
+          fi
+
+      - name: Pipeline complete
+        run: |
+          echo -e "\033[92m\033[1m[CI/CD]: all succeeded ✓\033[0m"
